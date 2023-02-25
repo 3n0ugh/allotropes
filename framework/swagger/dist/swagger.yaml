@@ -1,0 +1,54 @@
+openapi: 3.0.3
+info:
+  title: testnameapp
+  contact:
+    email: test@email.com
+  version: "3.0"
+servers:
+- url: http://localhost:8080
+tags:
+- name: testnamecontroller
+  description: testdesccontroller
+paths:
+  /v1/test:
+    get:
+      tags:
+      - testnamecontroller
+      description: testdesc
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Res'
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        bearer: []
+      parameters:
+      - name: elma
+        in: query
+        explode: true
+        schema:
+          type: string
+      - name: userId
+        in: query
+        schema:
+          type: integer
+          format: int32
+components:
+  schemas:
+    Res:
+      x-swagger-router-model: io.swagger.model.Res
+      properties:
+        adet:
+          type: integer
+          format: int32
+        patates:
+          type: string
+      type: object
