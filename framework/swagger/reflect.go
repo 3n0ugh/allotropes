@@ -1,6 +1,7 @@
 package swagger
 
 import (
+	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
@@ -44,6 +45,16 @@ var Types = map[string]HeaderSchema{
 	"time.Time": {Type: "string", Format: "date"},
 }
 
+type Route interface {
+	GetMethod() string
+	GetDescription() string
+	GetMiddlewares() []func(http.Handler) http.Handler
+	GetHeaders() map[string]string
+	GetPath() string
+	GetRequestModel() any
+	GetResponseModel() any
+}
+
 func (s *Swagger) AddTag(name, desc string) {
 	s.Tags = append(s.Tags, Tag{
 		Name:        name,
@@ -60,28 +71,26 @@ func (s *Swagger) SetSecuritySchemes() {
 }
 
 func (s *Swagger) SetPaths(r Route, tag string) {
-	if !StringSliceContains(validMethods, r.Method) {
+	if !StringSliceContains(validMethods, r.GetMethod()) {
 		return
 	}
 
-	t := reflect.TypeOf(r.Handler)
-
 	operation := Operation{
 		Tags:        []string{tag},
-		Description: r.Description,
+		Description: r.GetDescription(),
 		RequestBody: RequestBody{},
 		Responses:   map[string]Response{},
 		Security:    map[string][]string{},
 		Parameters:  []Parameter{},
 	}
 
-	operation.SetSecurity(r.Middlewares)
-	operation.SetRequestBody(t.In(1))
-	operation.SetParameters(t.In(1))
-	operation.SetResponses(t.Out(0), r.Headers)
+	operation.SetSecurity(r.GetMiddlewares())
+	operation.SetRequestBody(reflect.TypeOf(r.GetRequestModel()))
+	operation.SetParameters(reflect.TypeOf(r.GetRequestModel()))
+	operation.SetResponses(reflect.TypeOf(r.GetResponseModel()), r.GetHeaders())
 
-	s.Paths[r.Path] = map[string]Operation{
-		strings.ToLower(r.Method): operation,
+	s.Paths[r.GetPath()] = map[string]Operation{
+		strings.ToLower(r.GetMethod()): operation,
 	}
 }
 
@@ -118,7 +127,7 @@ func (o *Operation) SetRequestBody(val reflect.Type) {
 		},
 	}
 
-	swagger.SetSchema(val)
+	S.SetSchema(val)
 }
 
 func (o *Operation) SetParameters(val reflect.Type) {
@@ -186,7 +195,7 @@ func (o *Operation) SetResponses(val reflect.Type, headers map[string]string) {
 		},
 	}
 
-	swagger.SetSchema(val)
+	S.SetSchema(val)
 }
 
 func (s *Swagger) SetSchema(val reflect.Type) {

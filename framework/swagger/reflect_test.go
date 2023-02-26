@@ -1,12 +1,45 @@
 package swagger
 
 import (
+	"net/http"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+type TestRoute struct {
+	Name        string
+	Description string
+	Method      string
+	Path        string
+	Headers     map[string]string
+	Middlewares []func(http.Handler) http.Handler
+	Request     any
+	Response    any
+}
+
+func (r TestRoute) GetRequestModel() any                              { return r.Request }
+func (r TestRoute) GetResponseModel() any                             { return r.Response }
+func (r TestRoute) GetMethod() string                                 { return r.Method }
+func (r TestRoute) GetDescription() string                            { return r.Description }
+func (r TestRoute) GetMiddlewares() []func(http.Handler) http.Handler { return r.Middlewares }
+func (r TestRoute) GetHeaders() map[string]string                     { return r.Headers }
+func (r TestRoute) GetPath() string                                   { return r.Path }
+
+type Req struct {
+	Elma   []string `query:"elma"`
+	UserID int      `query:"userId"`
+}
+type Res struct {
+	Domates
+	Patates string `json:"patates"`
+}
+
+type Domates struct {
+	Adet int `json:"adet"`
+}
 
 func TestSwagger_AddTag(t *testing.T) {
 	expected := Swagger{
@@ -107,7 +140,7 @@ func TestSwagger_SetPaths(t *testing.T) {
 		},
 	}
 
-	r := Route{
+	r := TestRoute{
 		Name:        "testRoute",
 		Description: "testDesc",
 		Method:      "GET",
@@ -115,7 +148,8 @@ func TestSwagger_SetPaths(t *testing.T) {
 		Headers: map[string]string{
 			"Authorization": "abcdef",
 		},
-		Handler: func(Context, Req) (Res, error) { panic("not implemented") },
+		Request:  Req{},
+		Response: Res{},
 	}
 
 	actual := Swagger{

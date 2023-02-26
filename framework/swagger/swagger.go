@@ -7,7 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var swagger = Swagger{
+var S = Swagger{
 	OpenAPI: "3.0.3",
 	Paths:   map[string]map[string]Operation{},
 	Components: Component{
@@ -17,24 +17,17 @@ var swagger = Swagger{
 	},
 }
 
-func Init(a Application) error {
-	swagger.Info = Info{
-		Title: a.Name,
+func Init(name string) error {
+	S.Info = Info{
+		Title: name,
 		Contact: Contact{
 			Email: "test@email.com",
 		},
 		Version: "3.0",
 	}
-	swagger.Servers = []Server{{"http://localhost:8080"}}
+	S.Servers = []Server{{"http://localhost:8080"}}
 
-	for _, c := range a.Controllers {
-		swagger.AddTag(c.Name, c.Description)
-		for _, r := range c.Routes {
-			swagger.SetPaths(r, c.Name)
-		}
-	}
-
-	doc, err := yaml.Marshal(swagger)
+	doc, err := yaml.Marshal(S)
 	if err != nil {
 		return errors.Wrap(err, "swagger marshal")
 	}
