@@ -3,6 +3,8 @@ module github.com/3n0ugh/allotropes
 go 1.19
 
 require (
+	github.com/go-chi/chi v1.5.4
+	github.com/gorilla/mux v1.8.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.1
 	gopkg.in/yaml.v2 v2.4.0
