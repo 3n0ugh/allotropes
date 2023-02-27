@@ -1,0 +1,80 @@
+version: '3.9'
+services:
+  couchbase:
+    container_name: movpic_couchbase
+    image: 'couchbase:7.1.1'
+    ports:
+      - '8091:8091'
+      - '11210:11210'
+    networks:
+      - movpic_net
+    volumes:
+      - 'couchbase_data:/opt/couchbase/var'
+  postgres:
+    container_name: movpic_psql
+    image: 'postgres:15.1-alpine'
+    environment:
+      - POSTGRES_USER=movpic_user
+      - POSTGRES_PASSWORD=movpic_123
+      - POSTGRES_DB=account
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test:
+        - CMD
+        - pg_isready
+        - '-q'
+        - '-d'
+        - 'movpic'
+        - '-U'
+        - 'movpic_user'
+      timeout: 30s
+      interval: 30s
+      retries: 5
+    networks:
+      - movpic_net
+    volumes:
+      - 'postgres_data:/var/lib/postgresql/data'
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: movpic@movpic.com
+      PGADMIN_DEFAULT_PASSWORD: movpic_123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+       - pgadmin_data:/var/lib/pgadmin
+
+    ports:
+      - "5050:80"
+    networks:
+      - movpic_net
+    restart: unless-stopped
+  movpic:
+    container_name: movpic
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: on-failure
+    environment:
+      SECRET: sadfqweroi3214!@#40sadfa324
+      POSTGRES_DSN: postgres://movpic_user:movpic_123@postgres:5432/account?sslmode=disable
+      CB_BUCKET: movie
+      CB_COLL: movie
+      CB_USERNAME: movpic_user
+      CB_PASSWORD: movpic_123
+      CB_DSN: couchbase://couchbase
+    ports:
+      - '8080:8080'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - movpic_net
+volumes:
+  couchbase_data: null
+  postgres_data: null
+  pgadmin_data: null
+networks:
+  movpic_net:
+    driver: bridge
