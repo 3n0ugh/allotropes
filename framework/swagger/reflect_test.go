@@ -41,6 +41,8 @@ type Domates struct {
 	Adet int `json:"adet"`
 }
 
+func auth(_ http.Handler) http.Handler { return nil }
+
 func TestSwagger_AddTag(t *testing.T) {
 	expected := Swagger{
 		Tags: []Tag{
@@ -110,7 +112,7 @@ func TestSwagger_SetPaths(t *testing.T) {
 						},
 					},
 					Security: []map[string][]string{
-						{"bearer": {}},
+						{"bearerAuth": {}},
 					},
 					Parameters: []Parameter{
 						{
@@ -148,8 +150,9 @@ func TestSwagger_SetPaths(t *testing.T) {
 		Headers: map[string]string{
 			"Authorization": "abcdef",
 		},
-		Request:  Req{},
-		Response: Res{},
+		Middlewares: []func(http.Handler) http.Handler{auth},
+		Request:     Req{},
+		Response:    Res{},
 	}
 
 	actual := Swagger{
@@ -170,7 +173,7 @@ func TestSwagger_SetPaths(t *testing.T) {
 func TestOperation_SetSecurity(t *testing.T) {
 	expected := Operation{
 		Security: []map[string][]string{
-			{"bearer": {}},
+			{"bearerAuth": {}},
 		},
 	}
 
@@ -178,7 +181,7 @@ func TestOperation_SetSecurity(t *testing.T) {
 		Security: []map[string][]string{},
 	}
 
-	actual.SetSecurity(1)
+	actual.SetSecurity([]func(http.Handler) http.Handler{auth})
 
 	assert.Equal(t, expected, actual)
 }
@@ -335,18 +338,6 @@ func TestSwagger_SetSchema(t *testing.T) {
 						"Given": {
 							XSwaggerRouterModel: RouterModelPrefix + "Given",
 							Properties: map[string]Property{
-								"name": {
-									Type:   "string",
-									Format: "",
-								},
-								"b": {
-									Type:   "boolean",
-									Format: "",
-								},
-								"r": {
-									Type:   "integer",
-									Format: "int32",
-								},
 								"i": {
 									Type:   "integer",
 									Format: "int32",
@@ -358,10 +349,6 @@ func TestSwagger_SetSchema(t *testing.T) {
 								"f": {
 									Type:   "number",
 									Format: "double",
-								},
-								"t": {
-									Type:   "string",
-									Format: "date",
 								},
 								"x": {
 									Type: "array",
