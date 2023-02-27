@@ -13,7 +13,6 @@ const (
 )
 
 var (
-	validTags          = []string{"json", "header", "query", "path"}
 	validParameterTags = []string{"header", "query", "path"}
 	validBodyTags      = []string{"json"}
 	validMethods       = []string{"get", "put", "post", "head", "delete", "trace", "options", "path"}
@@ -80,7 +79,7 @@ func (s *Swagger) SetPaths(r Route, tag string) {
 		Description: r.GetDescription(),
 		RequestBody: RequestBody{},
 		Responses:   map[string]Response{},
-		Security:    map[string][]string{},
+		Security:    []map[string][]string{},
 		Parameters:  []Parameter{},
 	}
 
@@ -89,14 +88,31 @@ func (s *Swagger) SetPaths(r Route, tag string) {
 	operation.SetParameters(reflect.TypeOf(r.GetRequestModel()))
 	operation.SetResponses(reflect.TypeOf(r.GetResponseModel()), r.GetHeaders())
 
-	s.Paths[r.GetPath()] = map[string]Operation{
-		strings.ToLower(r.GetMethod()): operation,
+	p := s.Paths[r.GetPath()]
+	switch r.GetMethod() {
+	case http.MethodGet:
+		p.Get = operation
+	case http.MethodPost:
+		p.Post = operation
+	case http.MethodPut:
+		p.Put = operation
+	case http.MethodDelete:
+		p.Delete = operation
+	case http.MethodOptions:
+		p.Options = operation
+	case http.MethodHead:
+		p.Head = operation
+	case http.MethodPatch:
+		p.Patch = operation
+	case http.MethodTrace:
+		p.Trace = operation
 	}
+	s.Paths[r.GetPath()] = p
 }
 
 func (o *Operation) SetSecurity(middleware any) {
 	if StringSliceContains(authMiddlewares, "auth") {
-		o.Security["bearer"] = []string{}
+		o.Security = append(o.Security, map[string][]string{"bearerAuth": {}})
 	}
 }
 
@@ -206,7 +222,7 @@ func (s *Swagger) SetSchema(val reflect.Type) {
 
 	properties := map[string]Property{}
 	for _, field := range reflect.VisibleFields(o) {
-		tag, _ := isValidTag(validTags, field.Tag)
+		tag, _ := isValidTag(validBodyTags, field.Tag)
 		if field.Anonymous || tag == "" || !field.IsExported() {
 			continue
 		}

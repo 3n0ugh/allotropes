@@ -9,7 +9,7 @@ import (
 
 var S = Swagger{
 	OpenAPI: "3.0.3",
-	Paths:   map[string]map[string]Operation{},
+	Paths:   map[string]Path{},
 	Components: Component{
 		Schemas:         map[string]ComponentSchema{},
 		RequestBodies:   map[string]RequestBody{},
@@ -26,6 +26,7 @@ func Init(name string) error {
 		Version: "3.0",
 	}
 	S.Servers = []Server{{"http://localhost:8080"}}
+	S.SetSecuritySchemes()
 
 	doc, err := yaml.Marshal(S)
 	if err != nil {

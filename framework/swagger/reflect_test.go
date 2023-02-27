@@ -76,9 +76,9 @@ func TestSwagger_SetSecuritySchemes(t *testing.T) {
 func TestSwagger_SetPaths(t *testing.T) {
 	expected := Swagger{
 		OpenAPI: "3.0.3",
-		Paths: map[string]map[string]Operation{
+		Paths: map[string]Path{
 			"/v1/test": {
-				"get": {
+				Get: Operation{
 					Tags:        []string{"testTag"},
 					Description: "testDesc",
 					RequestBody: RequestBody{
@@ -109,8 +109,8 @@ func TestSwagger_SetPaths(t *testing.T) {
 							},
 						},
 					},
-					Security: map[string][]string{
-						"bearer": {},
+					Security: []map[string][]string{
+						{"bearer": {}},
 					},
 					Parameters: []Parameter{
 						{
@@ -154,7 +154,7 @@ func TestSwagger_SetPaths(t *testing.T) {
 
 	actual := Swagger{
 		OpenAPI: "3.0.3",
-		Paths:   map[string]map[string]Operation{},
+		Paths:   map[string]Path{},
 		Components: Component{
 			Schemas:         map[string]ComponentSchema{},
 			RequestBodies:   map[string]RequestBody{},
@@ -169,13 +169,13 @@ func TestSwagger_SetPaths(t *testing.T) {
 
 func TestOperation_SetSecurity(t *testing.T) {
 	expected := Operation{
-		Security: map[string][]string{
-			"bearer": {},
+		Security: []map[string][]string{
+			{"bearer": {}},
 		},
 	}
 
 	actual := Operation{
-		Security: map[string][]string{},
+		Security: []map[string][]string{},
 	}
 
 	actual.SetSecurity(1)
