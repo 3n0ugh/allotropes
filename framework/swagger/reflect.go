@@ -3,6 +3,7 @@ package swagger
 import (
 	"net/http"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -110,9 +111,13 @@ func (s *Swagger) SetPaths(r Route, tag string) {
 	s.Paths[r.GetPath()] = p
 }
 
-func (o *Operation) SetSecurity(middleware any) {
-	if StringSliceContains(authMiddlewares, "auth") {
-		o.Security = append(o.Security, map[string][]string{"bearerAuth": {}})
+func (o *Operation) SetSecurity(middlewares []func(http.Handler) http.Handler) {
+	for _, m := range middlewares {
+		n := runtime.FuncForPC(reflect.ValueOf(m).Pointer()).Name()
+		name := strings.Split(n, ".")
+		if StringSliceContains(authMiddlewares, name[len(name)-1]) {
+			o.Security = append(o.Security, map[string][]string{"bearerAuth": {}})
+		}
 	}
 }
 
