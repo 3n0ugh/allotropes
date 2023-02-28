@@ -139,11 +139,6 @@ func UpdateMovieEndpoint(svc Service) HandlerFunc {
 			return nil, errors.NewBadRequestError("unaccepted body", errors.Wrap(err, "movie body unmarshal").Error())
 		}
 
-		err = movie.Validate()
-		if err != nil {
-			return nil, errors.NewBadRequestError(err.Error(), errors.Wrap(err, "validation").Error())
-		}
-
 		return svc.UpdateMovie(UpdateMovieRequest{
 			ID:    id,
 			Movie: movie,
@@ -176,11 +171,6 @@ func AddMovieEndpoint(svc Service) HandlerFunc {
 		err = json.Unmarshal(body, &movie)
 		if err != nil {
 			return nil, errors.NewBadRequestError("unaccepted body", errors.Wrap(err, "movie body unmarshal").Error())
-		}
-
-		err = movie.Validate()
-		if err != nil {
-			return nil, errors.NewBadRequestError(err.Error(), errors.Wrap(err, "validation").Error())
 		}
 
 		return svc.AddMovie(AddMovieRequest{Movie: movie})

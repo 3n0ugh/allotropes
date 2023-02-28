@@ -40,7 +40,12 @@ func (s *service) MovieByID(r MovieByIDRequest) (*MovieByIDResponse, error) {
 }
 
 func (s *service) UpdateMovie(r UpdateMovieRequest) (*UpdateMovieResponse, error) {
-	err := s.Repo.UpdateMovie(r.ID, r.Movie)
+	err := r.Movie.Validate()
+	if err != nil {
+		return nil, errors.NewBadRequestError(err.Error(), errors.Wrap(err, "validation").Error())
+	}
+
+	err = s.Repo.UpdateMovie(r.ID, r.Movie)
 	if err != nil {
 		return nil, errors.NewInternalServerError(errors.Wrap(err, "couchbase query").Error())
 	}
@@ -58,7 +63,12 @@ func (s *service) DeleteMovie(r DeleteMovieRequest) (*DeleteMovieResponse, error
 }
 
 func (s *service) AddMovie(r AddMovieRequest) (*AddMovieResponse, error) {
-	err := s.Repo.AddMovie(r.Movie)
+	err := r.Movie.Validate()
+	if err != nil {
+		return nil, errors.NewBadRequestError(err.Error(), errors.Wrap(err, "validation").Error())
+	}
+
+	err = s.Repo.AddMovie(r.Movie)
 	if err != nil {
 		return nil, errors.NewInternalServerError(errors.Wrap(err, "couchbase query").Error())
 	}
