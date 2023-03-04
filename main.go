@@ -18,12 +18,13 @@ func main() {
 
 	}
 
-	controller := movie.InitController(cfg, cb)
+	movieController := movie.InitController(cfg, cb)
+	movieRefController := movie.InitController(cfg, cb)
 
 	a := application.App{
 		Name:           "Movpic",
 		Port:           8080,
-		Controllers:    []application.Controller{controller},
+		Controllers:    []application.Controller{movieController, movieRefController},
 		SwaggerEnabled: true,
 	}
 	a.Setup()
