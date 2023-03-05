@@ -1,6 +1,6 @@
 package pagination
 
-type Pagination struct {
+type Model struct {
 	TotalCount int `json:"-"`
 
 	Rel  string `json:"rel"`
@@ -8,5 +8,5 @@ type Pagination struct {
 	Prev string `json:"prev"`
 }
 
-func (p *Pagination) Set() {
+func (p *Model) Set() {
 }
