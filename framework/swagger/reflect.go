@@ -236,7 +236,7 @@ func (s *Swagger) SetSchema(val reflect.Type) {
 			s.SetSchema(field.Type)
 
 			properties[tag] = Property{
-				Ref: ReferencePrefix + field.Name,
+				Ref: ReferencePrefix + field.Type.Name(),
 			}
 		} else if field.Type.Kind() == reflect.Slice || field.Type.Kind() == reflect.Array {
 			if field.Type.Elem().Kind() == reflect.Struct {
@@ -281,7 +281,7 @@ func StringSliceContains(slice []string, s string) bool {
 
 func isValidTag(tags []string, tag reflect.StructTag) (string, string) {
 	for _, validTag := range tags {
-		if t := tag.Get(validTag); t != "" {
+		if t := tag.Get(validTag); t != "" && t != "-" {
 			return t, validTag
 		}
 	}

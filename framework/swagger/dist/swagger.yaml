@@ -7,13 +7,69 @@ info:
 servers:
 - url: http://localhost:8080
 tags:
-- name: Movie
-  description: Movie related services
+- name: Movie Ref
+  description: Movie Ref related services
 paths:
-  /v1/movie/{id}:
-    put:
+  /v1/movies:
+    get:
       tags:
-      - Movie
+      - Movie Ref
+      description: Get movies by page and page size
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMoviesResponse'
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+    post:
+      tags:
+      - Movie Ref
+      description: Add movie
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddMovieRequest'
+        required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddMovieResponse'
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - bearerAuth: []
+  /v1/movies/{id}:
+    get:
+      tags:
+      - Movie Ref
       description: Update movie by id
       requestBody:
         content:
@@ -43,10 +99,34 @@ paths:
         schema:
           type: integer
           format: int32
+    put:
+      tags:
+      - Movie Ref
+      description: Get movie by id
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMovieByIDResponse'
+        "500":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: false
+        schema:
+          type: integer
+          format: int32
     delete:
       tags:
-      - Movie
-      description: Delete movie by id
+      - Movie Ref
+      description: Delete movie
       responses:
         "200":
           description: Success
@@ -69,95 +149,32 @@ paths:
         schema:
           type: integer
           format: int32
-  /v1/movies:
-    get:
-      tags:
-      - Movie
-      description: Get movies by page and size
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MoviesResponse'
-        "500":
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      security:
-      - bearerAuth: []
-      parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          format: int32
-      - name: size
-        in: query
-        required: false
-        schema:
-          type: integer
-          format: int32
-    post:
-      tags:
-      - Movie
-      description: Add movie
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddMovieRequest'
-        required: false
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AddMovieResponse'
-        "500":
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      security:
-      - bearerAuth: []
-  /v1/movies/{id}:
-    get:
-      tags:
-      - Movie
-      description: Get movie by id
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MovieByIDResponse'
-        "500":
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      security:
-      - bearerAuth: []
-      parameters:
-      - name: id
-        in: path
-        required: false
-        schema:
-          type: integer
-          format: int32
 components:
   schemas:
-    "":
-      x-swagger-router-model: io.swagger.model.
+    AddMovieRequest:
+      x-swagger-router-model: io.swagger.model.AddMovieRequest
+      properties:
+        movie:
+          $ref: '#/components/schemas/Movie'
+      type: object
+    AddMovieResponse:
+      x-swagger-router-model: io.swagger.model.AddMovieResponse
+    Cast:
+      x-swagger-router-model: io.swagger.model.Cast
+      properties:
+        CastOrder:
+          type: integer
+          format: int32
+        Gender:
+          type: string
+        Name:
+          type: string
+        PersonID:
+          type: integer
+          format: int32
+      type: object
+    Crew:
+      x-swagger-router-model: io.swagger.model.Crew
       properties:
         Department:
           type: string
@@ -167,14 +184,6 @@ components:
           type: integer
           format: int32
       type: object
-    AddMovieRequest:
-      x-swagger-router-model: io.swagger.model.AddMovieRequest
-      properties:
-        movie:
-          $ref: '#/components/schemas/Movie'
-      type: object
-    AddMovieResponse:
-      x-swagger-router-model: io.swagger.model.AddMovieResponse
     DeleteMovieRequest:
       x-swagger-router-model: io.swagger.model.DeleteMovieRequest
     DeleteMovieResponse:
@@ -190,13 +199,46 @@ components:
         title:
           type: string
       type: object
+    GetMovieByIDRequest:
+      x-swagger-router-model: io.swagger.model.GetMovieByIDRequest
+    GetMovieByIDResponse:
+      x-swagger-router-model: io.swagger.model.GetMovieByIDResponse
+      properties:
+        movie:
+          $ref: '#/components/schemas/Movie'
+      type: object
+    GetMoviesRequest:
+      x-swagger-router-model: io.swagger.model.GetMoviesRequest
+    GetMoviesResponse:
+      x-swagger-router-model: io.swagger.model.GetMoviesResponse
+      properties:
+        movies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Movie'
+        pagination:
+          $ref: '#/components/schemas/Model'
+        totalCount:
+          type: integer
+          format: int32
+      type: object
+    Model:
+      x-swagger-router-model: io.swagger.model.Model
+      properties:
+        next:
+          type: string
+        prev:
+          type: string
+        rel:
+          type: string
+      type: object
     Movie:
       x-swagger-router-model: io.swagger.model.Movie
       properties:
         Cast:
           type: array
           items:
-            $ref: '#/components/schemas/'
+            $ref: '#/components/schemas/Cast'
         Company:
           type: array
           items:
@@ -208,7 +250,7 @@ components:
         Crew:
           type: array
           items:
-            $ref: '#/components/schemas/'
+            $ref: '#/components/schemas/Crew'
         Genres:
           type: array
           items:
@@ -233,42 +275,6 @@ components:
         Story:
           type: string
         Title:
-          type: string
-      type: object
-    MovieByIDRequest:
-      x-swagger-router-model: io.swagger.model.MovieByIDRequest
-    MovieByIDResponse:
-      x-swagger-router-model: io.swagger.model.MovieByIDResponse
-      properties:
-        movie:
-          $ref: '#/components/schemas/Movie'
-      type: object
-    MoviesRequest:
-      x-swagger-router-model: io.swagger.model.MoviesRequest
-    MoviesResponse:
-      x-swagger-router-model: io.swagger.model.MoviesResponse
-      properties:
-        movies:
-          type: array
-          items:
-            $ref: '#/components/schemas/Movie'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-        totalCount:
-          type: integer
-          format: int32
-      type: object
-    Pagination:
-      x-swagger-router-model: io.swagger.model.Pagination
-      properties:
-        '-':
-          type: integer
-          format: int32
-        next:
-          type: string
-        prev:
-          type: string
-        rel:
           type: string
       type: object
     UpdateMovieRequest:

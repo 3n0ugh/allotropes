@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/3n0ugh/allotropes/internal/pagination"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -315,15 +316,16 @@ func TestSwagger_SetSchema(t *testing.T) {
 	}
 
 	type Given struct {
-		Name string    `query:"name"`
-		s    string    `header:"s"`
-		B    bool      `path:"b"`
-		R    rune      `header:"r"`
-		I    int       `json:"i"`
-		U    uint      `json:"u"`
-		F    float64   `json:"f"`
-		T    time.Time `query:"t"`
-		X    []X       `json:"x"`
+		Name       string           `query:"name"`
+		s          string           `header:"s"`
+		B          bool             `path:"b"`
+		R          rune             `header:"r"`
+		I          int              `json:"i"`
+		U          uint             `json:"u"`
+		F          float64          `json:"f"`
+		T          time.Time        `query:"t"`
+		X          []X              `json:"x"`
+		Pagination pagination.Model `json:"pagination"`
 	}
 
 	testCases := map[string]struct {
@@ -356,6 +358,9 @@ func TestSwagger_SetSchema(t *testing.T) {
 										Ref: ReferencePrefix + "X",
 									},
 								},
+								"pagination": {
+									Ref: ReferencePrefix + "Model",
+								},
 							},
 							Type: "object",
 						},
@@ -369,25 +374,16 @@ func TestSwagger_SetSchema(t *testing.T) {
 							},
 							Type: "object",
 						},
-					},
-				},
-			},
-		},
-		"should add component schemas when given has embed struct": {
-			Given: struct {
-				X    `json:"x"`
-				Name string `json:"name"`
-			}{},
-			Expected: Swagger{
-				Components: Component{
-					Schemas: map[string]ComponentSchema{
-						"": {
-							XSwaggerRouterModel: RouterModelPrefix,
+						"Model": {
+							XSwaggerRouterModel: RouterModelPrefix + "Model",
 							Properties: map[string]Property{
-								"b": {
-									Type: "boolean",
+								"rel": {
+									Type: "string",
 								},
-								"name": {
+								"next": {
+									Type: "string",
+								},
+								"prev": {
 									Type: "string",
 								},
 							},
