@@ -13,38 +13,47 @@ import (
 	"github.com/3n0ugh/allotropes/internal/middleware"
 	"github.com/3n0ugh/allotropes/pkg/movie_ref/internal/domain"
 	"github.com/couchbase/gocb/v2"
+	"github.com/go-chi/chi"
 )
 
-type AddMovie struct {
+type UpdateMovie struct {
 	Repo *gocb.Bucket
 }
 
-type AddMovieRequest struct {
+type UpdateMovieRequest struct {
+	ID    int          `path:"id"`
 	Movie domain.Movie `json:"movie"`
 }
 
-type AddMovieResponse struct{}
+type UpdateMovieResponse struct{}
 
-func NewAddMovie(repo *gocb.Bucket) *AddMovie {
-	return &AddMovie{Repo: repo}
+func NewUpdateMovie(repo *gocb.Bucket) *UpdateMovie {
+	return &UpdateMovie{Repo: repo}
 }
 
-func (m *AddMovie) Route(ctx context.Context) application.Route {
+func (m *UpdateMovie) Route(ctx context.Context) application.Route {
 	return application.Route{
-		Name:        "Add Movie",
-		Description: "Add movie",
-		Method:      http.MethodPost,
-		Path:        "/v1/movies",
+		Name:        "Update Movie",
+		Description: "Update movie by id",
+		Method:      http.MethodGet,
+		Path:        "/v1/movies/{id}",
 		Headers:     map[string]string{},
 		Middlewares: []func(http.Handler) http.Handler{middleware.Auth},
 		Handler:     m.endpoint(ctx),
-		Request:     AddMovieRequest{},
-		Response:    AddMovieResponse{},
+		Request:     UpdateMovieRequest{},
+		Response:    UpdateMovieResponse{},
 	}
 }
 
-func (m *AddMovie) endpoint(ctx context.Context) application.HandlerFunc {
+func (m *UpdateMovie) endpoint(ctx context.Context) application.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) (any, error) {
+		idStr := chi.URLParam(r, "id")
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			return nil, errors.NewBadRequestError("id must be integer", errors.Wrap(err, "id conversion").Error())
+		}
+
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return nil, errors.NewBadRequestError("unaccepted body", "read body")
@@ -57,26 +66,26 @@ func (m *AddMovie) endpoint(ctx context.Context) application.HandlerFunc {
 			return nil, errors.NewBadRequestError("unaccepted body", errors.Wrap(err, "movie body unmarshal").Error())
 		}
 
-		return m.handle(ctx, AddMovieRequest{Movie: movie})
+		return m.handle(ctx, UpdateMovieRequest{ID: id, Movie: movie})
 	}
 }
 
-func (m *AddMovie) handle(ctx context.Context, r AddMovieRequest) (*AddMovieResponse, error) {
+func (m *UpdateMovie) handle(ctx context.Context, r UpdateMovieRequest) (*UpdateMovieResponse, error) {
 	err := r.Movie.Validate()
 	if err != nil {
 		return nil, errors.NewBadRequestError(err.Error(), errors.Wrap(err, "validation").Error())
 	}
 
-	err = m.repo(ctx, r.Movie)
+	err = m.repo(ctx, r.ID, r.Movie)
 	if err != nil {
 		return nil, errors.NewInternalServerError(errors.Wrap(err, "couchbase query").Error())
 	}
 
-	return &AddMovieResponse{}, nil
+	return &UpdateMovieResponse{}, nil
 }
 
-func (m *AddMovie) repo(_ context.Context, movie domain.Movie) error {
-	_, err := m.Repo.Scope("movie").Collection("movie").Insert(strconv.Itoa(movie.ID), movie, &gocb.InsertOptions{Timeout: 5 * time.Second})
+func (m *UpdateMovie) repo(ctx context.Context, id int, movie domain.Movie) error {
+	_, err := m.Repo.Scope("movie").Collection("movie").Upsert(strconv.Itoa(movie.ID), movie, &gocb.UpsertOptions{Timeout: 5 * time.Second})
 	if err != nil {
 		return errors.Wrap(err, "couchbase query")
 	}
