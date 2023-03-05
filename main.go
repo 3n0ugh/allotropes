@@ -8,7 +8,7 @@ import (
 	"github.com/3n0ugh/allotropes/framework/application"
 	"github.com/3n0ugh/allotropes/internal/config"
 	"github.com/3n0ugh/allotropes/internal/database"
-	movie "github.com/3n0ugh/allotropes/pkg/movie_ref"
+	"github.com/3n0ugh/allotropes/pkg/movie"
 )
 
 func main() {
