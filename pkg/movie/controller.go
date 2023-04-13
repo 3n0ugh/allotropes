@@ -17,8 +17,8 @@ func InitController(ctx context.Context, c config.Config, db *gocb.Bucket) appli
 	deleteMovieSvc := service.NewDeleteMovie(db)
 
 	return application.Controller{
-		Name:        "Movie Ref",
-		Description: "Movie Ref related services",
+		Name:        "Movie",
+		Description: "Movie related services",
 		Routes: []application.Route{
 			addMovieSvc.Route(ctx),
 			getMoviesSvc.Route(ctx),

@@ -19,7 +19,6 @@ func main() {
 	cb, err := database.OpenConnectionCB(cfg)
 	if err != nil {
 		log.Fatal(err)
-
 	}
 
 	movieRefController := movie.InitController(ctx, cfg, cb)
